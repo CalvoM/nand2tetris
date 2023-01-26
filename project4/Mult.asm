@@ -10,8 +10,8 @@
 // R0 >= 0, R1 >= 0, and R0*R1 < 32768.
 
 //Pseudocode
+// Get number in R[1] and R[0] make sure > 0
 // Get number in R[0] store in i
-// Get number in R[1]
 // Set R[2] to 0
 // Loop
 // if i is == 0 go to @end
@@ -20,8 +20,19 @@
 // goto loop
 // Put your code here.
 
+//confirm R[1] > 0
+@R1
+D=M
+
+@END
+D;JLT
+
+//confirm R[0] > 0
 @R0
 D=M
+
+@END
+D;JLT
 
 @i
 M=D
@@ -35,14 +46,19 @@ M=0
     D=M
     @END
     D;JEQ
-    // get R1 and update number in D reg
+    // get R1
     @R1
     D=M
-    A=D
-    D=D+A
 
+    // update product
+    @2
+    A=M
+    D=A+D
+
+    // update R[2]
     @R2
     M=D
+
 
     // i--
     @i
