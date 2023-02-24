@@ -8,13 +8,7 @@ fn main() {
     let root_file_name = input_file_name.split('.').collect::<Vec<&str>>()[0];
     let output_file_name = format!("{}{}", root_file_name, ".asm");
     let mut parser = Parser::new(input_file_name);
-    parser.parse();
-    parser.advance();
-    println!("More {}", parser.hasMoreLines());
-    parser.advance();
-    println!("More {}", parser.hasMoreLines());
-    parser.advance();
-    println!("More {}", parser.hasMoreLines());
-    parser.advance();
-    println!("More {}", parser.hasMoreLines());
+    let res = parser.parse();
+    println!("{:?}", res);
+    dbg!(res);
 }

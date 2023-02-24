@@ -1,6 +1,12 @@
 use crate::CommandType;
 use std::{fs::File, io::Read};
 
+#[derive(Debug)]
+pub struct ParserResult {
+    pub command: CommandType,
+    pub args: Vec<String>,
+}
+
 pub struct Parser {
     line_number: isize,
     lines: Vec<String>,
@@ -18,18 +24,38 @@ impl Parser {
             current_cmd: String::new(),
         }
     }
-    pub fn parse(&mut self) {
+    pub fn parse(&mut self) -> Vec<ParserResult> {
+        let mut parser_results: Vec<ParserResult> = vec![];
         let mut input_file = File::open(self.file_name.as_str()).unwrap();
         input_file.read_to_string(&mut self.content).unwrap();
-        self.lines = self.content.split('\n').map(|s| s.to_string()).collect();
+        self.lines = self
+            .content
+            .trim()
+            .split('\n')
+            .map(|s| s.trim_end().to_string())
+            .collect();
+        self.line_number += 1;
+        while self.hasMoreLines() {
+            self.advance();
+            parser_results.push(ParserResult {
+                command: self.commandType(),
+                args: vec![self.arg1(), self.arg2().to_string()],
+            })
+        }
+        parser_results
     }
     pub fn hasMoreLines(&self) -> bool {
-        self.lines.len() != self.line_number as usize
+        self.lines.len() - 1 >= self.line_number as usize
     }
     pub fn advance(&mut self) {
-        if self.hasMoreLines() {
-            self.line_number += 1;
+        while self.hasMoreLines() {
             self.current_cmd = self.lines[self.line_number as usize].clone();
+            let cmds: Vec<&str> = self.current_cmd.split(' ').collect();
+            self.line_number += 1;
+            if cmds[0].starts_with("//") || cmds[0] == "" {
+                continue;
+            }
+            break;
         }
     }
     fn commandType(&self) -> CommandType {
@@ -55,7 +81,7 @@ impl Parser {
             unimplemented!()
         }
     }
-    fn arg2(&self) -> u64 {
+    fn arg2(&self) -> i64 {
         let cmds: Vec<&str> = self.current_cmd.split(' ').collect();
         let cmd = self.commandType();
         if cmd == CommandType::C_PUSH
@@ -63,9 +89,9 @@ impl Parser {
             || cmd == CommandType::C_FUNCTION
             || cmd == CommandType::C_CALL
         {
-            return cmds[2].parse::<u64>().unwrap();
+            return cmds[2].parse::<i64>().unwrap();
         } else {
-            unimplemented!()
+            return -1;
         }
     }
 }

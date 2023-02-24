@@ -2,7 +2,8 @@ pub mod codewriter;
 pub mod parser;
 pub use codewriter::CodeWriter;
 pub use parser::Parser;
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub use parser::ParserResult;
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum CommandType {
     C_ARITHMETIC,
     C_PUSH,
