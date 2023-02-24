@@ -1,4 +1,4 @@
-use project7::Parser;
+use project7::{CodeWriter, Parser};
 use std::env;
 
 fn main() {
@@ -9,6 +9,6 @@ fn main() {
     let output_file_name = format!("{}{}", root_file_name, ".asm");
     let mut parser = Parser::new(input_file_name);
     let res = parser.parse();
-    println!("{:?}", res);
-    dbg!(res);
+    let mut writer = CodeWriter::new(&output_file_name);
+    writer.write(res);
 }
