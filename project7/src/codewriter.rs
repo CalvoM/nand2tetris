@@ -52,7 +52,12 @@ impl CodeWriter {
         match command.as_str() {
             "add" | "sub" => {
                 self.get_x();
-                self.add_or_sub(&command)
+                self.add_or_sub(&command);
+            }
+            "neg" | "not" => {
+                self.get_y();
+                self.neg_or_not(&command);
+                self.incr_sp();
             }
             _ => todo!(),
         }
@@ -74,42 +79,41 @@ impl CodeWriter {
         }
     }
     fn incr_sp(&mut self) {
-        let cmd = self.make_cmd(&mut ["// Incr SP", "@SP", "M=M+1"]);
-        self.file.write(cmd.as_bytes()).unwrap();
+        self.write_cmd(&mut ["// Incr SP", "@SP", "M=M+1"]);
     }
     fn decr_sp(&mut self) {
-        let cmd = self.make_cmd(&mut ["// Decr SP", "@SP", "M=M-1"]);
-        self.file.write(cmd.as_bytes()).unwrap();
+        self.write_cmd(&mut ["// Decr SP", "@SP", "M=M-1"]);
     }
     fn set_x(&mut self) {
-        let cmd = self.make_cmd(&mut ["// Set x", "@SP", "A=M", "D=M", X_VAR, "M=D"]);
-        self.file.write(cmd.as_bytes()).unwrap();
+        self.write_cmd(&mut ["// Set x", "@SP", "A=M", "D=M", X_VAR, "M=D"]);
     }
     fn set_y(&mut self) {
-        let cmd = self.make_cmd(&mut ["//Set y", "@SP", "A=M", "D=M", Y_VAR, "M=D"]);
-        self.file.write(cmd.as_bytes()).unwrap();
+        self.write_cmd(&mut ["//Set y", "@SP", "A=M", "D=M", Y_VAR, "M=D"]);
     }
     fn get_x(&mut self) {
-        let cmd = self.make_cmd(&mut ["//Get x", X_VAR, "D=M"]);
-        self.file.write(cmd.as_bytes()).unwrap();
+        self.write_cmd(&mut ["//Get x", X_VAR, "D=M"]);
     }
     fn get_y(&mut self) {
-        let cmd = self.make_cmd(&mut ["//Get y", Y_VAR, "D=M"]);
-        self.file.write(cmd.as_bytes()).unwrap();
+        self.write_cmd(&mut ["//Get y", Y_VAR, "D=M"]);
     }
     fn add_or_sub(&mut self, op: &str) {
         let mut sign = "+";
         if op == "sub" {
             sign = "-";
         }
-        let cmd =
-            self.make_cmd(&mut [Y_VAR, format!("D=D{}M", sign).as_str(), "@SP", "A=M", "M=D"]);
-        self.file.write(cmd.as_bytes()).unwrap();
+        self.write_cmd(&mut [Y_VAR, format!("D=D{}M", sign).as_str(), "@SP", "A=M", "M=D"]);
     }
-    fn make_cmd(&mut self, cmd_args: &mut [&str]) -> String {
+    fn neg_or_not(&mut self, op: &str) {
+        let mut sign = "-";
+        if op == "not" {
+            sign = "!";
+        }
+        self.write_cmd(&mut [format!("D={}D", sign).as_str(), "@SP", "A=M", "M=D"]);
+    }
+    fn write_cmd(&mut self, cmd_args: &mut [&str]) {
         let mut cmd = cmd_args.join("\r\n");
         cmd.push_str("\r\n");
-        cmd
+        self.file.write(cmd.as_bytes()).unwrap();
     }
     fn close(&mut self) {}
 }
