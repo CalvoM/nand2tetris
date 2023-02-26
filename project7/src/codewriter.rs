@@ -74,27 +74,27 @@ impl CodeWriter {
         }
     }
     fn incr_sp(&mut self) {
-        let cmd = "// Incr SP\r\n@SP\r\nM=M+1\r\n";
+        let cmd = self.make_cmd(&mut ["// Incr SP", "@SP", "M=M+1"]);
         self.file.write(cmd.as_bytes()).unwrap();
     }
     fn decr_sp(&mut self) {
-        let cmd = "// Decr SP\r\n@SP\r\nM=M-1\r\n";
+        let cmd = self.make_cmd(&mut ["// Decr SP", "@SP", "M=M-1"]);
         self.file.write(cmd.as_bytes()).unwrap();
     }
     fn set_x(&mut self) {
-        let cmd = format!("// Set x\r\n@SP\r\nA=M\r\nD=M\r\n{}\r\nM=D\r\n", X_VAR);
+        let cmd = self.make_cmd(&mut ["// Set x", "@SP", "A=M", "D=M", X_VAR, "M=D"]);
         self.file.write(cmd.as_bytes()).unwrap();
     }
     fn set_y(&mut self) {
-        let cmd = format!("// Set y\r\n@SP\r\nA=M\r\nD=M\r\n{}\r\nM=D\r\n", Y_VAR);
+        let cmd = self.make_cmd(&mut ["//Set y", "@SP", "A=M", "D=M", Y_VAR, "M=D"]);
         self.file.write(cmd.as_bytes()).unwrap();
     }
     fn get_x(&mut self) {
-        let cmd = format!("//Get x\r\n{}\r\nD=M\r\n", X_VAR);
+        let cmd = self.make_cmd(&mut ["//Get x", X_VAR, "D=M"]);
         self.file.write(cmd.as_bytes()).unwrap();
     }
     fn get_y(&mut self) {
-        let cmd = format!("//Get y\r\n{}\r\nD=M\r\n", Y_VAR);
+        let cmd = self.make_cmd(&mut ["//Get y", Y_VAR, "D=M"]);
         self.file.write(cmd.as_bytes()).unwrap();
     }
     fn add_or_sub(&mut self, op: &str) {
@@ -102,8 +102,14 @@ impl CodeWriter {
         if op == "sub" {
             sign = "-";
         }
-        let add_cmd = format!("{}\r\nD=D{}M\r\n@SP\r\nA=M\r\nM=D\r\n", Y_VAR, sign);
-        self.file.write(add_cmd.as_bytes()).unwrap();
+        let cmd =
+            self.make_cmd(&mut [Y_VAR, format!("D=D{}M", sign).as_str(), "@SP", "A=M", "M=D"]);
+        self.file.write(cmd.as_bytes()).unwrap();
+    }
+    fn make_cmd(&mut self, cmd_args: &mut [&str]) -> String {
+        let mut cmd = cmd_args.join("\r\n");
+        cmd.push_str("\r\n");
+        cmd
     }
     fn close(&mut self) {}
 }
