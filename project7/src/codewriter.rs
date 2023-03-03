@@ -41,7 +41,7 @@ impl CodeWriter {
             }
         }
     }
-    fn writeArithmetic(&mut self, command: String) {
+    pub fn writeArithmetic(&mut self, command: String) {
         // Var x stored in R14
         // Var y stored in R15
         let cmd = format!("// {}\r\n", command);
@@ -77,14 +77,7 @@ impl CodeWriter {
         self.add_value_to_stack();
         self.incr_sp();
     }
-    fn writePushPop(&mut self, command: CommandType, segment: String, index: usize) {
-        // PUSH
-        // get SP
-        // add item to stack
-        // incr SP
-        // POP
-        // decr SP
-        // get item from stack
+    pub fn writePushPop(&mut self, command: CommandType, segment: String, index: usize) {
         let cmd = format!("// {:?} {} {}\r\n", command, segment, index);
         self.file.write(cmd.as_bytes()).unwrap();
         match command {
@@ -101,15 +94,12 @@ impl CodeWriter {
     }
     fn handle_pop_segment(&mut self, segment: &str, index: usize) {
         match segment {
-            "constant" => {
-                //self.push_constant(index);
-            }
             "local" | "argument" | "this" | "that" => {
-                // self.push_reg_values(segment, index);
                 self.pop_reg_values(segment, index);
             }
             "temp" | "static" => {
-                // self.push_reg_range(segment, index);
+                self.get_value_from_stack();
+                self.pop_reg_range(segment, index);
             }
             "pointer" => {
                 self.get_value_from_stack();
@@ -152,7 +142,14 @@ impl CodeWriter {
         };
         self.write_cmd(&mut [ram_loc, "D=M"]);
     }
-    fn pop_reg_range(&mut self, reg: &str, index: usize) {}
+    fn pop_reg_range(&mut self, reg: &str, index: usize) {
+        let loc = match reg {
+            "temp" => TEMP_LOC_BASE + index,
+            "static" => STATIC_LOC_BASE + index,
+            _ => todo!(),
+        };
+        self.write_cmd(&mut [format!("@{}", loc).as_str(), "M=D"]);
+    }
     fn push_reg_range(&mut self, reg: &str, index: usize) {
         let loc = match reg {
             "temp" => TEMP_LOC_BASE + index,
@@ -269,5 +266,5 @@ impl CodeWriter {
         self.line_number += cmd_args.len();
         self.file.write(cmd.as_bytes()).unwrap();
     }
-    fn close(&mut self) {}
+    pub fn close(&mut self) {}
 }
